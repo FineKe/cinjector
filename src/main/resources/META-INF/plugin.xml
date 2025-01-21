@@ -15,4 +15,13 @@
     <applicationListeners>
         <listener class="com.github.fineke.cinjector.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <lineMarkerProvider language="JAVA" implementationClass="com.github.fineke.core.ModuleLineMarkerProvider"/>
+    </extensions>
+
+    <application-components>
+        <component implementation="com.github.fineke.core.RemoteDebugStarter"/>
+    </application-components>
+
 </idea-plugin>
