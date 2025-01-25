@@ -1,16 +1,51 @@
 package com.github.fineke.core;
 
-public class ModuleLineMarkerProvider implements LineMarkerProvider{
+import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
+import com.intellij.codeInsight.daemon.LineMarkerInfo;
+import com.intellij.codeInsight.daemon.LineMarkerProvider;
+import com.intellij.execution.lineMarker.ExecutorAction;
+import com.intellij.execution.lineMarker.RunLineMarkerContributor;
+import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
+import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.psi.*;
+import com.intellij.ui.icons.RowIcon;
+import com.intellij.util.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.idea.maven.execution.MavenRunner;
+import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
+import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
-    @Override
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Collections;
+
+public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
+
+//    @Override
     public @Nullable LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
         if (element instanceof PsiMethod && isValidMainMethod((PsiMethod) element)) {
             return new LineMarkerInfo<>(
                     element,  // 关联的 PSI 元素
                     element.getTextRange(),
                     IconLoader.getIcon("/icons/run.svg"),  // 自定义的图标
-                    LineMarkerInfo.Alignment.CENTER,
-                    null,  // 点击事件
+                    new Function<PsiElement, String>() {
+                        @Override
+                        public String fun(PsiElement psiElement) {
+                            return "Compile and Run";  // 鼠标悬停时显示的文本
+                        }
+                    },
                     new GutterIconNavigationHandler<PsiElement>() {
                         @Override
                         public void navigate(MouseEvent e, PsiElement elt) {
@@ -34,8 +69,9 @@ public class ModuleLineMarkerProvider implements LineMarkerProvider{
     }
 
     private void runOrDebug(Project project) {
+        compile(project);
         // 在点击按钮时编译项目并上传 JAR 文件
-        compileAndRun(project);
+        // compileAndRun(project);
     }
 
     private void compileAndRun(Project project) {
@@ -81,5 +117,33 @@ public class ModuleLineMarkerProvider implements LineMarkerProvider{
             e.printStackTrace();
         }
     }
+
+
+
+    private static final ProjectSystemId MAVEN_SYSTEM_ID = new ProjectSystemId("Maven");
+
+    private void compile(Project project) {
+
+
+        MavenRunner runner = MavenRunner.getInstance(project);
+        MavenRunnerSettings settings = runner.getState().clone();
+        settings.getMavenProperties().put("interactiveMode", "false");
+        MavenRunnerParameters params = new MavenRunnerParameters();
+        params.setWorkingDirPath(project.getProjectFilePath());
+        params.setGoals(Collections.singletonList("install"));
+        runner.run(params, settings, () -> System.out.println("maven goal execution completed"));
+    }
+
+    @Override
+    public @Nullable Info getInfo(@NotNull PsiElement element) {
+
+        if (element instanceof PsiMethod && isValidMainMethod((PsiMethod) element)) {
+            return new RunLineMarkerContributor.Info(new DeployAction("deploy"));
+        }
+
+        return null;
+    }
+
+
 
 }

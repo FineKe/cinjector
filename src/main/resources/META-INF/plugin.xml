@@ -5,6 +5,7 @@
     <vendor>fineke</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.idea.maven</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
@@ -17,11 +18,11 @@
     </applicationListeners>
 
     <extensions defaultExtensionNs="com.intellij">
-        <lineMarkerProvider language="JAVA" implementationClass="com.github.fineke.core.ModuleLineMarkerProvider"/>
+        <runLineMarkerContributor language="JAVA" implementationClass="com.github.fineke.core.ModuleLineMarkerProvider"/>
+        <programRunner implementation="com.github.fineke.core.DeployRunner"/>
+        <configurationType implementation="com.github.fineke.core.DemoRunConfigurationType"/>
     </extensions>
-
-    <application-components>
-        <component implementation="com.github.fineke.core.RemoteDebugStarter"/>
-    </application-components>
-
+    <actions>
+        <action id="DeployAction" class="com.github.fineke.core.DeployAction" text="DeployAction"/>
+    </actions>
 </idea-plugin>
