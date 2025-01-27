@@ -5,6 +5,7 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.execution.lineMarker.ExecutorAction;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
@@ -30,6 +31,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
+
+import static com.intellij.util.PlatformIcons.ADD_ICON;
 
 public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
 
@@ -138,7 +141,12 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
     public @Nullable Info getInfo(@NotNull PsiElement element) {
 
         if (element instanceof PsiMethod && isValidMainMethod((PsiMethod) element)) {
-            return new RunLineMarkerContributor.Info(new DeployAction("deploy"));
+            return new RunLineMarkerContributor.Info(ADD_ICON, new Function<PsiElement, String>() {
+                @Override
+                public String fun(PsiElement psiElement) {
+                    return "Compile and Run";
+                }
+            },new DeployAction("deploy"),new DeployAction("deploy"));
         }
 
         return null;

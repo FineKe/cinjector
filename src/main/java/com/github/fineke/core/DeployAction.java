@@ -3,6 +3,8 @@ package com.github.fineke.core;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -19,6 +21,8 @@ import org.jetbrains.idea.maven.project.MavenProject;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class DeployAction extends AnAction {
 
@@ -38,21 +42,35 @@ public class DeployAction extends AnAction {
         Path path = Path.of(mavenProject.getDirectory(), String.format("%s.%s", mavenProject.getFinalName(), mavenProject.getPackaging()));
 
 
-
-
         MavenRunner runner = MavenRunner.getInstance(project);
         MavenRunnerSettings settings = runner.getState().clone();
         settings.getMavenProperties().put("interactiveMode", "false");
         MavenRunnerParameters params = new MavenRunnerParameters();
         params.setWorkingDirPath(project.getBasePath());
         params.setGoals(Collections.singletonList("install"));
-        runner.run(params, settings, () -> System.out.println("maven goal execution completed"));
 
-        RunManager runManager = RunManager.getInstance(project);
-        var cf = runManager.createConfiguration("deploy", new DemoConfigurationFactory(new DemoRunConfigurationType()));
-        cf.setName(path.toString());
-        runManager.addConfiguration(cf);
-        ProgramRunnerUtil.executeConfiguration(cf, ExecutorRegistry.getInstance().getRegisteredExecutors()[0]);
+        runner.run(params, settings, () -> {
+            try {
+                RunManager runManager = RunManager.getInstance(project);
+                RunnerAndConfigurationSettings cf = null;
+                if (runManager.getConfigurationSettingsList(DemoRunConfigurationType.class).isEmpty()){
+                    cf = runManager.createConfiguration("deploy", new DemoConfigurationFactory(new DemoRunConfigurationType()));
+                    cf.setName("runModuleRunner");
+                    ((DemoRunConfiguration) cf.getConfiguration()).setScriptName(path.toString());
+                    runManager.addConfiguration(cf);
+                    runManager.setSelectedConfiguration(cf);
+                }else {
+                    cf = runManager.getConfigurationSettingsList(DemoRunConfigurationType.class).get(0);
+
+                }
+
+                ProgramRunnerUtil.executeConfiguration(cf, DefaultRunExecutor.getRunExecutorInstance());
+            } catch (Exception executionException) {
+                executionException.printStackTrace();
+            }
+        });
+
+
     }
 
 

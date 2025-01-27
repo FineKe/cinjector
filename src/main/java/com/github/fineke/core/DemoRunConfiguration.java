@@ -1,7 +1,9 @@
 package com.github.fineke.core;
 
+import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
@@ -12,6 +14,9 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.idea.maven.tasks.MavenBeforeRunTask;
+
+import java.util.List;
 
 public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurationOptions> {
 
@@ -50,7 +55,7 @@ public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurat
       @Override
       protected ProcessHandler startProcess() throws ExecutionException {
         GeneralCommandLine commandLine =
-            new GeneralCommandLine(getOptions().getScriptName());
+            new GeneralCommandLine("ls -a");
         OSProcessHandler processHandler = ProcessHandlerFactory.getInstance()
             .createColoredProcessHandler(commandLine);
         ProcessTerminatedListener.attach(processHandler);
@@ -59,4 +64,12 @@ public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurat
     };
   }
 
+  @Override
+  public @NotNull List<BeforeRunTask<?>> getBeforeRunTasks() {
+    MavenBeforeRunTask mavenBeforeRunTask = new MavenBeforeRunTask();
+    mavenBeforeRunTask.setEnabled(true);
+    mavenBeforeRunTask.setGoal("install");
+    mavenBeforeRunTask.setProjectPath(getProject().getBasePath());
+    return List.of(mavenBeforeRunTask);
+  }
 }
