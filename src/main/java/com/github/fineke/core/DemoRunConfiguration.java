@@ -3,7 +3,6 @@ package com.github.fineke.core;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
@@ -32,13 +31,37 @@ public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurat
     return (DemoRunConfigurationOptions) super.getOptions();
   }
 
-  public String getScriptName() {
-    return getOptions().getScriptName();
+  public String getJarPath() {
+    return getOptions().getJarPath();
   }
 
-  public void setScriptName(String scriptName) {
-    getOptions().setScriptName(scriptName);
+  public void setJarPath(String jarPath) {
+    getOptions().setJarPath(jarPath);
   }
+
+  public String getArtifactId() {
+    return getOptions().getArtifactId();
+  }
+
+    public void setArtifactId(String artifactId) {
+        getOptions().setArtifactId(artifactId);
+    }
+
+    public String getModule() {
+        return getOptions().getModule();
+    }
+
+    public void setModule(String module) {
+        getOptions().setModule(module);
+    }
+
+    public String getPnUrl() {
+        return getOptions().getPnUrl();
+    }
+
+    public void setPnUrl(String pnUrl) {
+        getOptions().setPnUrl(pnUrl);
+    }
 
   @NotNull
   @Override
@@ -50,18 +73,7 @@ public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurat
   @Override
   public RunProfileState getState(@NotNull Executor executor,
                                   @NotNull ExecutionEnvironment environment) {
-    return new CommandLineState(environment) {
-      @NotNull
-      @Override
-      protected ProcessHandler startProcess() throws ExecutionException {
-        GeneralCommandLine commandLine =
-            new GeneralCommandLine("ls -a");
-        OSProcessHandler processHandler = ProcessHandlerFactory.getInstance()
-            .createColoredProcessHandler(commandLine);
-        ProcessTerminatedListener.attach(processHandler);
-        return processHandler;
-      }
-    };
+    return new DemoRunProfileState(this,environment);
   }
 
   @Override

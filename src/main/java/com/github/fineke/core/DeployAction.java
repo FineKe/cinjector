@@ -1,6 +1,5 @@
 package com.github.fineke.core;
 
-import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -11,7 +10,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.Icons;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.execution.MavenRunner;
@@ -21,8 +19,6 @@ import org.jetbrains.idea.maven.project.MavenProject;
 
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class DeployAction extends AnAction {
 
@@ -39,7 +35,8 @@ public class DeployAction extends AnAction {
         Project project = e.getProject();
         VirtualFile currentFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
         MavenProject mavenProject = MavenProjectUtils.getMavenProjectForFile(project, currentFile);
-        Path path = Path.of(mavenProject.getDirectory(), String.format("%s.%s", mavenProject.getFinalName(), mavenProject.getPackaging()));
+        Path path = Path.of(mavenProject.getDirectory(), String.format("%s.%s", mavenProject.getFinalName()+"-ark-biz", mavenProject.getPackaging()));
+        String artifactId = mavenProject.getName();
 
 
         MavenRunner runner = MavenRunner.getInstance(project);
@@ -56,7 +53,11 @@ public class DeployAction extends AnAction {
                 if (runManager.getConfigurationSettingsList(DemoRunConfigurationType.class).isEmpty()){
                     cf = runManager.createConfiguration("deploy", new DemoConfigurationFactory(new DemoRunConfigurationType()));
                     cf.setName("runModuleRunner");
-                    ((DemoRunConfiguration) cf.getConfiguration()).setScriptName(path.toString());
+                    ((DemoRunConfiguration) cf.getConfiguration()).setJarPath(path.toString());
+                    ((DemoRunConfiguration) cf.getConfiguration()).setModule("demo");
+                    ((DemoRunConfiguration) cf.getConfiguration()).setArtifactId(artifactId);
+                    ((DemoRunConfiguration) cf.getConfiguration()).setPnUrl("http://localhost:8080/bridge");
+                    // todo: set artifactId, module, pnUrl
                     runManager.addConfiguration(cf);
                     runManager.setSelectedConfiguration(cf);
                 }else {

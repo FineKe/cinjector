@@ -42,36 +42,39 @@ public class DeployRunner implements ProgramRunner {
 
     @Override
     public void execute(@NotNull ExecutionEnvironment environment) throws ExecutionException {
-        var cf = environment.getRunnerAndConfigurationSettings();
-        String path = ((DemoRunConfiguration) cf.getConfiguration()).getScriptName();
-        try {
-            installJar(Path.of(path));
-            startModule();
-        } catch (Exception e) {
-            throw new ExecutionException(e);
-        }
+        environment.getState().execute(environment.getExecutor(), this);
+//        var cfs = environment.getRunnerAndConfigurationSettings();
+//        var cf = ((DemoRunConfiguration) cfs.getConfiguration());
+//        String path = cf.getJarPath();
+//        String baseUrl = cf.getPnUrl();
+//        try {
+//            installJar(baseUrl,Path.of(path));
+//            startModule(baseUrl,cf.getArtifactId(),cf.getModule());
+//        } catch (Exception e) {
+//            throw new ExecutionException(e);
+//        }
     }
 
 
     private void compileJar(Project project) {
     }
 
-    private void installJar(Path jarPath) throws IOException, InterruptedException {
+    private void installJar(String baserUrl, Path jarPath) throws IOException, InterruptedException {
         // 将 JAR 文件通过 HTTP 上传到本地 Java 服务
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/bride/install"))
+                .uri(URI.create(String.format("%s/install",baserUrl)))
                 .POST(HttpRequest.BodyPublishers.ofFile(jarPath))
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println("Upload response: " + response.body());
     }
 
-    public void startModule(String artifactId,String module) {
+    public void startModule(String baserUrl,String artifactId,String module) {
         // 启动 Java 服务中的指定模块
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(String.format("http://localhost:8080/bride/%s/%s/start" + artifactId)))
+                .uri(URI.create(String.format("/%s/%s/start",baserUrl,artifactId,module)))
                 .build();
         CompletableFuture<HttpResponse<String>> response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
         response.thenAccept(r -> System.out.println("Start response: " + r.body()));
