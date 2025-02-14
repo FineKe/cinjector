@@ -10,6 +10,15 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindowId;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 public class DemoRunProfileState implements RunProfileState {
     private final DemoRunConfiguration config;
@@ -31,9 +40,21 @@ public class DemoRunProfileState implements RunProfileState {
         String module = config.getModule();
 
 
-        if (jarPath == null ) {
-            throw new ExecutionException("JAR path, Docker API URL, or container name is not set");
+        if (ToolWindowId.DEBUG.equals(executor.getId())) {
+
         }
+
+
+
+        try {
+            installJar(baserUrl, Path.of(jarPath));
+            startModule(baserUrl, artifactId, module);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
 
         ConsoleView consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
 
@@ -42,7 +63,18 @@ public class DemoRunProfileState implements RunProfileState {
         try {
             logProcess = new KillableProcessHandler(new GeneralCommandLine("docker", "-H" ,"127.0.0.1:2375",  "logs" ,"-f", "parser-node"));
             RunContentExecutor runContentExecutor = new RunContentExecutor(project, logProcess);
-            runContentExecutor.withTitle("Parser Node Logs").withActivateToolWindow(true).run();
+            runContentExecutor.withTitle("Parser Node Logs").withActivateToolWindow(true)
+                    .withStop(()->{
+                        try {
+                            stopModule(baserUrl, artifactId, module);
+                            uninstallJar(baserUrl, artifactId);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }, ()->true)
+                    .run();
         } catch (Exception e) {
            e.printStackTrace();
         }
@@ -52,13 +84,49 @@ public class DemoRunProfileState implements RunProfileState {
     }
 
 
-    private ConsoleView createConsoleView(String title, ProcessHandler handler) {
-        ConsoleView consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
-        consoleView.attachToProcess(handler);
-        new RunContentExecutor(project, handler)
-                .withTitle(title)
-                .withActivateToolWindow(true)
-                .run();
-        return consoleView;
+    private void installJar(String baserUrl, Path jarPath) throws IOException, InterruptedException {
+        // 将 JAR 文件通过 HTTP 上传到本地 Java 服务
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("%s/install",baserUrl)))
+                .POST(HttpRequest.BodyPublishers.ofFile(jarPath))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("Upload response: " + response.body());
+    }
+
+    public void startModule(String baserUrl,String artifactId,String module) throws IOException, InterruptedException {
+        // 启动 Java 服务中的指定模块
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("%s/%s/%s/start",baserUrl,artifactId,module)))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("start response: " + response.body());
+    }
+
+    public void stopModule(String baserUrl,String artifactId,String module) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("%s/%s/%s/stop",baserUrl,artifactId,module)))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("stop response: " + response.body());
+    }
+
+    public void uninstallJar(String baserUrl,String artifactId) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("%s/%s/uninstall",baserUrl,artifactId)))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("stop response: " + response.body());
+    }
+
+    public void doRunModule() {
+
     }
 }

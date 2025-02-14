@@ -25,4 +25,6 @@
     <actions>
         <action id="DeployAction" class="com.github.fineke.core.DeployAction" text="DeployAction"/>
     </actions>
+
+    <idea-version since-build="242.0" until-build="999.*"/>
 </idea-plugin>

@@ -1,12 +1,15 @@
 package com.github.fineke.core;
 
+import com.github.weisj.jsvg.S;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -16,27 +19,55 @@ import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
+import javax.swing.*;
 import java.nio.file.Path;
 import java.util.Collections;
 
 public class DeployAction extends AnAction {
 
+    private String module;
+
     public DeployAction() {
-        super("deploy","jhhhhhhh", Icons.ADD_ICON);
     }
 
-    public DeployAction(@Nullable @NlsActions.ActionText String text) {
-        super(text,"jhhhhhhh", Icons.ADD_ICON);
+    public DeployAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, String module) {
+        super(text, description, icon);
+        this.module = module;
+    }
+
+    public DeployAction(String module) {
+        super("deploy","jhhhhhhh", AllIcons.Actions.Execute);
+        this.module= module;
+    }
+
+    public DeployAction(@Nullable @NlsActions.ActionText String text,String module) {
+        super(text,"jhhhhhhh", AllIcons.Actions.Execute);
+        this.module = module;
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getProject();
         VirtualFile currentFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-        MavenProject mavenProject = MavenProjectUtils.getMavenProjectForFile(project, currentFile);
-        Path path = Path.of(mavenProject.getDirectory(), String.format("%s.%s", mavenProject.getFinalName()+"-ark-biz", mavenProject.getPackaging()));
-        String artifactId = mavenProject.getName();
+        MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
+        var currentProject = manager
+                .getProjects()
+                .stream()
+                .filter(mp-> currentFile.getPath().startsWith(mp.getDirectory()))
+                .sorted((a,b)->b.getDirectory().length()-a.getDirectory().length())
+                .findFirst().get();
+
+        if (currentProject==null) {
+
+            return;
+        }
+
+
+
+        Path path = Path.of(currentProject.getBuildDirectory(), String.format("%s.%s", currentProject.getFinalName()+"-ark-biz", currentProject.getPackaging()));
+        String artifactId = currentProject.getName();
 
 
         MavenRunner runner = MavenRunner.getInstance(project);
@@ -44,7 +75,8 @@ public class DeployAction extends AnAction {
         settings.getMavenProperties().put("interactiveMode", "false");
         MavenRunnerParameters params = new MavenRunnerParameters();
         params.setWorkingDirPath(project.getBasePath());
-        params.setGoals(Collections.singletonList("install"));
+        params.setGoals(Collections.singletonList("package"));
+        params.setCmdOptions("-Dmaven.test.skip=true");
 
         runner.run(params, settings, () -> {
             try {
@@ -53,16 +85,15 @@ public class DeployAction extends AnAction {
                 if (runManager.getConfigurationSettingsList(DemoRunConfigurationType.class).isEmpty()){
                     cf = runManager.createConfiguration("deploy", new DemoConfigurationFactory(new DemoRunConfigurationType()));
                     cf.setName("runModuleRunner");
-                    ((DemoRunConfiguration) cf.getConfiguration()).setJarPath(path.toString());
-                    ((DemoRunConfiguration) cf.getConfiguration()).setModule("demo");
-                    ((DemoRunConfiguration) cf.getConfiguration()).setArtifactId(artifactId);
-                    ((DemoRunConfiguration) cf.getConfiguration()).setPnUrl("http://localhost:8080/bridge");
-                    // todo: set artifactId, module, pnUrl
+                    DemoRunConfiguration configuration = (DemoRunConfiguration) cf.getConfiguration();
+                    configuration.setJarPath(path.toString());
+                    configuration.setModule(this.module);
+                    configuration.setArtifactId(artifactId);
+                    configuration.setPnUrl("http://localhost:8080/bridge");
                     runManager.addConfiguration(cf);
                     runManager.setSelectedConfiguration(cf);
                 }else {
                     cf = runManager.getConfigurationSettingsList(DemoRunConfigurationType.class).get(0);
-
                 }
 
                 ProgramRunnerUtil.executeConfiguration(cf, DefaultRunExecutor.getRunExecutorInstance());
@@ -73,7 +104,4 @@ public class DeployAction extends AnAction {
 
 
     }
-
-
-
 }

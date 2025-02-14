@@ -12,16 +12,13 @@ import java.awt.*;
 public class DemoSettingsEditor extends SettingsEditor<DemoRunConfiguration> {
 
   private final JPanel myPanel;
-  private final TextFieldWithBrowseButton scriptPathField;
+  private final JTextField scriptPathField;
   private final JTextField artifactIdField;
-    private final JTextField moduleField;
-    private final JTextField pnUrlField;
+  private final JTextField moduleField;
+  private final JTextField pnUrlField;
 
   public DemoSettingsEditor() {
-    scriptPathField = new TextFieldWithBrowseButton();
-    scriptPathField.addBrowseFolderListener("Jar Path", null, null,
-        FileChooserDescriptorFactory.createSingleFileDescriptor());
-
+    scriptPathField = new JTextField();
     artifactIdField = new JTextField();
     moduleField = new JTextField();
     pnUrlField = new JTextField();
@@ -38,7 +35,9 @@ public class DemoSettingsEditor extends SettingsEditor<DemoRunConfiguration> {
   @Override
   protected void resetEditorFrom(DemoRunConfiguration demoRunConfiguration) {
     scriptPathField.setText(demoRunConfiguration.getJarPath());
-
+    artifactIdField.setText(demoRunConfiguration.getArtifactId());
+    moduleField.setText(demoRunConfiguration.getModule());
+    pnUrlField.setText(demoRunConfiguration.getPnUrl());
   }
 
   @Override

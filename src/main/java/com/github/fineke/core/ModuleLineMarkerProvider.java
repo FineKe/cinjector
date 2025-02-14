@@ -36,31 +36,7 @@ import static com.intellij.util.PlatformIcons.ADD_ICON;
 
 public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
 
-//    @Override
-    public @Nullable LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
-        if (element instanceof PsiMethod && isValidMainMethod((PsiMethod) element)) {
-            return new LineMarkerInfo<>(
-                    element,  // 关联的 PSI 元素
-                    element.getTextRange(),
-                    IconLoader.getIcon("/icons/run.svg"),  // 自定义的图标
-                    new Function<PsiElement, String>() {
-                        @Override
-                        public String fun(PsiElement psiElement) {
-                            return "Compile and Run";  // 鼠标悬停时显示的文本
-                        }
-                    },
-                    new GutterIconNavigationHandler<PsiElement>() {
-                        @Override
-                        public void navigate(MouseEvent e, PsiElement elt) {
-                            // 点击按钮后触发的操作
-                            runOrDebug(elt.getProject());
-                        }
-                    },
-                    GutterIconRenderer.Alignment.CENTER
-            );
-        }
-        return null;
-    }
+
 
     private boolean isValidMainMethod(PsiMethod method) {
         PsiParameterList params = method.getParameterList();
@@ -77,17 +53,7 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
         // compileAndRun(project);
     }
 
-    private void compileAndRun(Project project) {
-        // 这里执行编译任务和上传 JAR 文件的操作
-        try {
-            // 假设你已经有了构建 JAR 和上传 JAR 的逻辑
-            File jarFile = compileToJar(project);
-            uploadJar(jarFile);
-            startJarWithDebug();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
     private File compileToJar(Project project) throws Exception {
         // 使用 Maven 或 Gradle 编译项目为 JAR 文件
@@ -122,7 +88,6 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
     }
 
 
-
     private static final ProjectSystemId MAVEN_SYSTEM_ID = new ProjectSystemId("Maven");
 
     private void compile(Project project) {
@@ -140,18 +105,40 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
     @Override
     public @Nullable Info getInfo(@NotNull PsiElement element) {
 
-        if (element instanceof PsiMethod && isValidMainMethod((PsiMethod) element)) {
-            return new RunLineMarkerContributor.Info(ADD_ICON, new Function<PsiElement, String>() {
+        if (isModule(element)) {
+            String module = getAnnotationValue(((PsiClass) element.getParent()).getAnnotation("com.oklink.blockchain.Module"));
+            return new RunLineMarkerContributor.Info(AllIcons.Actions.Execute, new Function<PsiElement, String>() {
                 @Override
                 public String fun(PsiElement psiElement) {
                     return "Compile and Run";
                 }
-            },new DeployAction("deploy"),new DeployAction("deploy"));
+            }, new DeployAction("Run "+module, module),new DeployAction("Debug Module","Debug a module",AllIcons.Actions.StartDebugger,module));
         }
 
         return null;
     }
 
 
+    private boolean isModule(PsiElement element) {
+        if (element instanceof PsiIdentifier && element.getParent() instanceof PsiClass) {
+            PsiClass psiClass = (PsiClass) element.getParent();
 
+            // 检查类是否有 @Module 注解
+            PsiAnnotation moduleAnnotation = psiClass.getAnnotation("com.oklink.blockchain.Module");
+            if (moduleAnnotation != null) {
+                return true;
+
+            }
+        }
+        return false;
+    }
+
+    private String getAnnotationValue(PsiAnnotation annotation) {
+        PsiAnnotationMemberValue valueAttribute = annotation.findAttributeValue("value");
+        if (valueAttribute instanceof PsiLiteralExpression) {
+            Object value = ((PsiLiteralExpression) valueAttribute).getValue();
+            return value != null ? value.toString() : "Unknown";
+        }
+        return "Unknown";
+    }
 }
