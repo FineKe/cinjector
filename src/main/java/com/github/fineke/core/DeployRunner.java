@@ -31,10 +31,10 @@ public class DeployRunner implements ProgramRunner {
     @Override
     public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
         if (ToolWindowId.RUN.equals(executorId)) {
-            return profile instanceof DemoRunConfiguration;
+            return profile instanceof ModuleRunConfiguration;
         }
         if (ToolWindowId.DEBUG.equals(executorId)) {
-            return profile instanceof DemoRunConfiguration;
+            return profile instanceof ModuleRunConfiguration;
         }
         return false;
     }

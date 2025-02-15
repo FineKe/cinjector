@@ -1,11 +1,13 @@
 package com.github.fineke.core;
 
 import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.*;
+import com.intellij.execution.process.OSProcessHandler;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessHandlerFactory;
+import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
@@ -15,18 +17,17 @@ import org.jetbrains.idea.maven.tasks.MavenBeforeRunTask;
 
 import java.util.List;
 
-public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurationOptions> {
+public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfigurationOptions> {
 
-  protected DemoRunConfiguration(Project project,
-                                 ConfigurationFactory factory,
-                                 String name) {
+  protected ModuleRunConfiguration(Project project,
+                                   ConfigurationFactory factory,
+                                   String name) {
     super(project, factory, name);
   }
 
-  @NotNull
   @Override
-  protected DemoRunConfigurationOptions getOptions() {
-    return (DemoRunConfigurationOptions) super.getOptions();
+  protected @NotNull ModuleRunConfigurationOptions getOptions() {
+    return (ModuleRunConfigurationOptions)super.getOptions();
   }
 
   public String getJarPath() {
@@ -64,22 +65,26 @@ public class DemoRunConfiguration extends RunConfigurationBase<DemoRunConfigurat
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-    return new DemoSettingsEditor();
+    return new ModuleSettingsEditor();
   }
 
   @Nullable
   @Override
   public RunProfileState getState(@NotNull Executor executor,
                                   @NotNull ExecutionEnvironment environment) {
-    return new DemoRunProfileState(this,environment);
-  }
+    return new ModuleRunProfileState(this,environment);
 
-  @Override
-  public @NotNull List<BeforeRunTask<?>> getBeforeRunTasks() {
-    MavenBeforeRunTask mavenBeforeRunTask = new MavenBeforeRunTask();
-    mavenBeforeRunTask.setEnabled(true);
-    mavenBeforeRunTask.setGoal("install");
-    mavenBeforeRunTask.setProjectPath(getProject().getBasePath());
-    return List.of(mavenBeforeRunTask);
+//    return new CommandLineState(environment) {
+//      @NotNull
+//      @Override
+//      protected ProcessHandler startProcess() throws ExecutionException {
+//        GeneralCommandLine commandLine =
+//                new GeneralCommandLine("docker", "-H" ,"127.0.0.1:2375",  "logs" ,"-f", "parser-node");
+//        OSProcessHandler processHandler = ProcessHandlerFactory.getInstance()
+//                .createColoredProcessHandler(commandLine);
+//        ProcessTerminatedListener.attach(processHandler);
+//        return processHandler;
+//      }
+//    };
   }
 }

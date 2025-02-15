@@ -8,28 +8,28 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DemoConfigurationFactory extends ConfigurationFactory {
+public class RunModuleConfigurationFactory extends ConfigurationFactory {
 
-    protected DemoConfigurationFactory(ConfigurationType type) {
+    protected RunModuleConfigurationFactory(ConfigurationType type) {
         super(type);
     }
 
     @Override
     public @NotNull String getId() {
-        return DemoRunConfigurationType.ID;
+        return ModuleRunConfigurationType.ID;
     }
 
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(
             @NotNull Project project) {
-        return new DemoRunConfiguration(project, this, "Demo");
+        return new ModuleRunConfiguration(project, this, "Demo");
     }
 
     @Nullable
     @Override
     public Class<? extends BaseState> getOptionsClass() {
-        return DemoRunConfigurationOptions.class;
+        return ModuleRunConfigurationOptions.class;
     }
 
 }

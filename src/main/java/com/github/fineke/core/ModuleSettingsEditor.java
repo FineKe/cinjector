@@ -1,15 +1,12 @@
 package com.github.fineke.core;
 
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.util.ui.FormBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
-public class DemoSettingsEditor extends SettingsEditor<DemoRunConfiguration> {
+public class ModuleSettingsEditor extends SettingsEditor<ModuleRunConfiguration> {
 
   private final JPanel myPanel;
   private final JTextField scriptPathField;
@@ -17,7 +14,7 @@ public class DemoSettingsEditor extends SettingsEditor<DemoRunConfiguration> {
   private final JTextField moduleField;
   private final JTextField pnUrlField;
 
-  public DemoSettingsEditor() {
+  public ModuleSettingsEditor() {
     scriptPathField = new JTextField();
     artifactIdField = new JTextField();
     moduleField = new JTextField();
@@ -33,19 +30,19 @@ public class DemoSettingsEditor extends SettingsEditor<DemoRunConfiguration> {
   }
 
   @Override
-  protected void resetEditorFrom(DemoRunConfiguration demoRunConfiguration) {
-    scriptPathField.setText(demoRunConfiguration.getJarPath());
-    artifactIdField.setText(demoRunConfiguration.getArtifactId());
-    moduleField.setText(demoRunConfiguration.getModule());
-    pnUrlField.setText(demoRunConfiguration.getPnUrl());
+  protected void resetEditorFrom(ModuleRunConfiguration moduleRunConfiguration) {
+    scriptPathField.setText(moduleRunConfiguration.getJarPath());
+    artifactIdField.setText(moduleRunConfiguration.getArtifactId());
+    moduleField.setText(moduleRunConfiguration.getModule());
+    pnUrlField.setText(moduleRunConfiguration.getPnUrl());
   }
 
   @Override
-  protected void applyEditorTo(@NotNull DemoRunConfiguration demoRunConfiguration) {
-    demoRunConfiguration.setJarPath(scriptPathField.getText());
-    demoRunConfiguration.setArtifactId(artifactIdField.getText());
-    demoRunConfiguration.setModule(moduleField.getText());
-    demoRunConfiguration.setPnUrl(pnUrlField.getText());
+  protected void applyEditorTo(@NotNull ModuleRunConfiguration moduleRunConfiguration) {
+    moduleRunConfiguration.setJarPath(scriptPathField.getText());
+    moduleRunConfiguration.setArtifactId(artifactIdField.getText());
+    moduleRunConfiguration.setModule(moduleField.getText());
+    moduleRunConfiguration.setPnUrl(pnUrlField.getText());
   }
 
   @NotNull

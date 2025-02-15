@@ -1,9 +1,10 @@
 package com.github.fineke.core;
 
+import com.intellij.execution.configurations.LocatableRunConfigurationOptions;
 import com.intellij.execution.configurations.RunConfigurationOptions;
 import com.intellij.openapi.components.StoredProperty;
 
-public class DemoRunConfigurationOptions extends RunConfigurationOptions {
+public class ModuleRunConfigurationOptions extends RunConfigurationOptions {
 
     private final StoredProperty<String> jarPath = string("").provideDelegate(this, "jarPath");
     private final StoredProperty<String> artifactId = string("").provideDelegate(this, "artifactId");
