@@ -1,24 +1,20 @@
 package com.github.fineke.core;
 
-import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.*;
-import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessHandlerFactory;
-import com.intellij.execution.process.ProcessTerminatedListener;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunConfigurationBase;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.tasks.MavenBeforeRunTask;
-
-import java.util.List;
+import org.jetbrains.idea.maven.project.MavenProject;
 
 public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfigurationOptions> {
-
+  private MavenProject mavenProject;
   protected ModuleRunConfiguration(Project project,
                                    ConfigurationFactory factory,
                                    String name) {
@@ -73,18 +69,13 @@ public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfig
   public RunProfileState getState(@NotNull Executor executor,
                                   @NotNull ExecutionEnvironment environment) {
     return new ModuleRunProfileState(this,environment);
+  }
 
-//    return new CommandLineState(environment) {
-//      @NotNull
-//      @Override
-//      protected ProcessHandler startProcess() throws ExecutionException {
-//        GeneralCommandLine commandLine =
-//                new GeneralCommandLine("docker", "-H" ,"127.0.0.1:2375",  "logs" ,"-f", "parser-node");
-//        OSProcessHandler processHandler = ProcessHandlerFactory.getInstance()
-//                .createColoredProcessHandler(commandLine);
-//        ProcessTerminatedListener.attach(processHandler);
-//        return processHandler;
-//      }
-//    };
+  public MavenProject getMavenProject() {
+    return mavenProject;
+  }
+
+  public void setMavenProject(MavenProject mavenProject) {
+    this.mavenProject = mavenProject;
   }
 }

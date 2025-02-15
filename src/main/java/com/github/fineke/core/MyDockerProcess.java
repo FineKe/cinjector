@@ -13,14 +13,12 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 public class MyDockerProcess extends ProcessHandler {
-    private final String jarPath;
     private final String baserUrl;
     private final String artifactId;
     private final String module;
 
 
-    public MyDockerProcess(String jarPath, String baserUrl, String artifactId, String module) {
-        this.jarPath = jarPath;
+    public MyDockerProcess(String baserUrl, String artifactId, String module) {
         this.baserUrl = baserUrl;
         this.artifactId = artifactId;
         this.module = module;
@@ -54,8 +52,6 @@ public class MyDockerProcess extends ProcessHandler {
                 // 1. 编译项目（Maven/Gradle）
                 runCommand("mvn clean package");
 
-                installJar(baserUrl, Path.of(jarPath));
-                startModule(baserUrl, artifactId, module);
 
                 // 3. 显示 Docker 容器日志
                 runCommand("docker logs -f parser-node");

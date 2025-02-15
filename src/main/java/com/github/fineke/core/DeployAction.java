@@ -15,11 +15,14 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
+import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import org.jetbrains.idea.maven.tasks.MavenBeforeRunTask;
 
 import javax.swing.*;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 
 public class DeployAction extends AnAction {
 
@@ -45,38 +48,12 @@ public class DeployAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        Project project = e.getProject();
-        VirtualFile currentFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-        MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
-        var currentProject = manager
-                .getProjects()
-                .stream()
-                .filter(mp-> currentFile.getPath().startsWith(mp.getDirectory()))
-                .sorted((a,b)->b.getDirectory().length()-a.getDirectory().length())
-                .findFirst().get();
-
-        if (currentProject==null) {
-
-            return;
-        }
-
-
-
+        MavenProject currentProject = getCurrentMavenProject(e);
         Path path = Path.of(currentProject.getBuildDirectory(), String.format("%s.%s", currentProject.getFinalName()+"-ark-biz", currentProject.getPackaging()));
         String artifactId = currentProject.getName();
 
 
-        MavenRunner runner = MavenRunner.getInstance(project);
-        MavenRunnerSettings settings = runner.getState().clone();
-        settings.getMavenProperties().put("interactiveMode", "false");
-        MavenRunnerParameters params = new MavenRunnerParameters();
-        params.setWorkingDirPath(project.getBasePath());
-        params.setGoals(Collections.singletonList("package"));
-        params.setCmdOptions("-Dmaven.test.skip=true");
-
-        runner.run(params, settings, () -> {
-            try {
-                RunManager runManager = RunManager.getInstance(project);
+                RunManager runManager = RunManager.getInstance(e.getProject());
                 RunnerAndConfigurationSettings cf = null;
                 if (runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).isEmpty()){
                     cf = runManager.createConfiguration("deploy", new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
@@ -86,18 +63,29 @@ public class DeployAction extends AnAction {
                     configuration.setModule(this.module);
                     configuration.setArtifactId(artifactId);
                     configuration.setPnUrl("http://localhost:8080/bridge");
+                    configuration.setMavenProject(currentProject);
                     runManager.addConfiguration(cf);
                     runManager.setSelectedConfiguration(cf);
                 }else {
                     cf = runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).get(0);
+                    ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
+                    configuration.setMavenProject(currentProject);
                 }
 
                 ProgramRunnerUtil.executeConfiguration(cf, DefaultRunExecutor.getRunExecutorInstance());
-            } catch (Exception executionException) {
-                executionException.printStackTrace();
-            }
-        });
 
+    }
 
+    private MavenProject getCurrentMavenProject(AnActionEvent e) {
+        VirtualFile currentFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        MavenProjectsManager manager = MavenProjectsManager.getInstance(e.getProject());
+        var currentProject = manager
+                .getProjects()
+                .stream()
+                .filter(mp-> currentFile.getPath().startsWith(mp.getDirectory()))
+                .sorted((a,b)->b.getDirectory().length()-a.getDirectory().length())
+                .findFirst().get();
+
+        return currentProject;
     }
 }
