@@ -50,7 +50,7 @@ public class DeployAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
         MavenProject currentProject = getCurrentMavenProject(e);
         Path path = Path.of(currentProject.getBuildDirectory(), String.format("%s.%s", currentProject.getFinalName()+"-ark-biz", currentProject.getPackaging()));
-        String artifactId = currentProject.getName();
+        String artifactId = currentProject.getMavenId().getArtifactId();
 
 
                 RunManager runManager = RunManager.getInstance(e.getProject());
