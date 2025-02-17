@@ -1,8 +1,6 @@
 package com.github.fineke.core;
 
-import com.intellij.execution.ProgramRunnerUtil;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.*;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -11,6 +9,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindowId;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
@@ -27,23 +26,16 @@ import java.util.List;
 public class DeployAction extends AnAction {
 
     private String module;
+    private boolean debug;
 
     public DeployAction() {
     }
 
-    public DeployAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, String module) {
+
+    public DeployAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, String module,boolean debug) {
         super(text, description, icon);
         this.module = module;
-    }
-
-    public DeployAction(String module) {
-        super("deploy","jhhhhhhh", AllIcons.Actions.Execute);
-        this.module= module;
-    }
-
-    public DeployAction(@Nullable @NlsActions.ActionText String text,String module) {
-        super(text,"jhhhhhhh", AllIcons.Actions.Execute);
-        this.module = module;
+        this.debug = debug;
     }
 
     @Override
@@ -72,7 +64,12 @@ public class DeployAction extends AnAction {
                     configuration.setMavenProject(currentProject);
                 }
 
-                ProgramRunnerUtil.executeConfiguration(cf, DefaultRunExecutor.getRunExecutorInstance());
+                Executor executor = DefaultRunExecutor.getRunExecutorInstance();
+
+                if (debug) {
+                    executor = ExecutorRegistry.getInstance().getExecutorById(ToolWindowId.DEBUG);
+                }
+                ProgramRunnerUtil.executeConfiguration(cf, executor);
 
     }
 
@@ -87,5 +84,12 @@ public class DeployAction extends AnAction {
                 .findFirst().get();
 
         return currentProject;
+    }
+
+    public static DeployAction createDeployAction(boolean debug,String module) {
+        if (debug) {
+            return new DeployAction(String.format("Debug %s",module),String.format("Build %s and Run it with Debug",module),AllIcons.Actions.StartDebugger,module,true);
+        }
+        return new DeployAction(String.format("Run %s",module),String.format("Build %s and Run it ",module),AllIcons.Actions.Execute,module,debug);
     }
 }

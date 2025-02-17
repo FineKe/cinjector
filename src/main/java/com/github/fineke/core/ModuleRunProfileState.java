@@ -1,5 +1,6 @@
 package com.github.fineke.core;
 
+import com.google.gson.Gson;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfileState;
@@ -15,11 +16,13 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindowId;
+import kotlinx.serialization.json.Json;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.io.JsonUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -54,7 +57,7 @@ public class ModuleRunProfileState implements RunProfileState {
 
 
         ConsoleView consoleView = createConsoleView();
-        KillableProcessHandler processHandler = new MyKillableProcessHandler(new GeneralCommandLine("docker", "-H" ,"127.0.0.1:2375",  "logs" ,"-f", "parser-node"),
+        KillableProcessHandler processHandler = new MyKillableProcessHandler(new GeneralCommandLine("docker", "logs" ,"-f", "parser-node"),
                 baserUrl, artifactId, module);
 
         RunContentExecutor runContentExecutor = new RunContentExecutor(project, processHandler);
@@ -104,8 +107,22 @@ public class ModuleRunProfileState implements RunProfileState {
                 .uri(URI.create(String.format("%s/install",baserUrl)))
                 .POST(HttpRequest.BodyPublishers.ofFile(jarPath))
                 .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Upload response: " + response.body());
+        MyProgressTask.runProgressTask(project,"install", ()->{
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                Gson gson = new Gson();
+                APIResult apiResult = gson.fromJson(response.body(), APIResult.class);
+                if (apiResult.code!=0) {
+                    throw new RuntimeException(apiResult.getMsg());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+
     }
 
     public void startModule(String baserUrl,String artifactId,String module) throws IOException, InterruptedException {
@@ -115,8 +132,20 @@ public class ModuleRunProfileState implements RunProfileState {
                 .uri(URI.create(String.format("%s/%s/%s/start",baserUrl,artifactId,module)))
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("start response: " + response.body());
+        MyProgressTask.runProgressTask(project,"install", ()->{
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                Gson gson = new Gson();
+                APIResult apiResult = gson.fromJson(response.body(), APIResult.class);
+                if (apiResult.code!=0) {
+                    throw new RuntimeException(apiResult.getMsg());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void runModule(String baserUrl,String jarPath,String artifactId,String module,ConsoleView consoleView) {
@@ -165,11 +194,33 @@ public class ModuleRunProfileState implements RunProfileState {
         configuration.SERVER_MODE = false;
         configuration.AUTO_RESTART = true;
 
+
         ProgramRunnerUtil.executeConfiguration(runnerAndConfigurationSettings, environment.getExecutor());
     }
 
 
     private ConsoleView createConsoleView() {
         return new ConsoleViewImpl(environment.getProject(), true);
+    }
+
+    public static class APIResult {
+        private int code;
+        private String msg;
+
+        public int getCode() {
+            return code;
+        }
+
+        public void setCode(int code) {
+            this.code = code;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
     }
 }

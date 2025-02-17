@@ -32,10 +32,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 
+import static com.github.fineke.core.DeployAction.createDeployAction;
 import static com.intellij.util.PlatformIcons.ADD_ICON;
 
 public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
-
 
 
     private boolean isValidMainMethod(PsiMethod method) {
@@ -52,7 +52,6 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
         // 在点击按钮时编译项目并上传 JAR 文件
         // compileAndRun(project);
     }
-
 
 
     private File compileToJar(Project project) throws Exception {
@@ -112,7 +111,8 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
                 public String fun(PsiElement psiElement) {
                     return "Compile and Run";
                 }
-            }, new DeployAction("Run "+module, module),new DeployAction("Debug Module","Debug a module",AllIcons.Actions.StartDebugger,module));
+            }, createDeployAction(false, module),
+                    createDeployAction(true, module));
         }
 
         return null;
