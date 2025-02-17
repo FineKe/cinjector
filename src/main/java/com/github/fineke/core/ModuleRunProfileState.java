@@ -132,7 +132,7 @@ public class ModuleRunProfileState implements RunProfileState {
                 .uri(URI.create(String.format("%s/%s/%s/start",baserUrl,artifactId,module)))
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
-        MyProgressTask.runProgressTask(project,"install", ()->{
+        MyProgressTask.runProgressTask(project,"start", ()->{
             try {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 Gson gson = new Gson();
