@@ -1,6 +1,5 @@
 package com.github.fineke.core;
 
-import com.intellij.execution.configurations.LocatableRunConfigurationOptions;
 import com.intellij.execution.configurations.RunConfigurationOptions;
 import com.intellij.openapi.components.StoredProperty;
 

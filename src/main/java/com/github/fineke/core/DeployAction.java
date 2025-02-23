@@ -46,10 +46,11 @@ public class DeployAction extends AnAction {
 
 
                 RunManager runManager = RunManager.getInstance(e.getProject());
+                String name = String.format("Run %s", module);
                 RunnerAndConfigurationSettings cf = null;
                 if (runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).isEmpty()){
-                    cf = runManager.createConfiguration("deploy", new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
-                    cf.setName("runModuleRunner");
+                    cf = runManager.createConfiguration(name, new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
+                    cf.setName(name);
                     ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
                     configuration.setJarPath(path.toString());
                     configuration.setModule(this.module);

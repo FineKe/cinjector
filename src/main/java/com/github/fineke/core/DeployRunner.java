@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 public class DeployRunner implements ProgramRunner {
     @Override
     public @NotNull @NonNls String getRunnerId() {
-        return "runModuleRunner";
+        return "ModuleRunner";
     }
 
     @Override
