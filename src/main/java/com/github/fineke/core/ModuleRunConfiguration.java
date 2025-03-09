@@ -1,5 +1,6 @@
 package com.github.fineke.core;
 
+import com.github.weisj.jsvg.S;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -55,6 +56,14 @@ public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfig
 
     public void setPnUrl(String pnUrl) {
         getOptions().setPnUrl(pnUrl);
+    }
+
+    public void setId(String id) {
+        getOptions().setId(id);
+    }
+
+    public String getId() {
+        return getOptions().getId();
     }
 
   @NotNull

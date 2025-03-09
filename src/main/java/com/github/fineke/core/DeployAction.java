@@ -25,6 +25,7 @@ import java.util.List;
 
 public class DeployAction extends AnAction {
 
+    public static final String DEFAULT_BRIDGE = "http://localhost:8080/bridge";
     private String module;
     private boolean debug;
 
@@ -32,7 +33,7 @@ public class DeployAction extends AnAction {
     }
 
 
-    public DeployAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, String module,boolean debug) {
+    public DeployAction(@Nullable @NlsActions.ActionText String text, @Nullable @NlsActions.ActionDescription String description, @Nullable Icon icon, String module, boolean debug) {
         super(text, description, icon);
         this.module = module;
         this.debug = debug;
@@ -41,36 +42,44 @@ public class DeployAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         MavenProject currentProject = getCurrentMavenProject(e);
-        Path path = Path.of(currentProject.getBuildDirectory(), String.format("%s.%s", currentProject.getFinalName()+"-ark-biz", currentProject.getPackaging()));
+        Path path = Path.of(currentProject.getBuildDirectory(), String.format("%s.%s", currentProject.getFinalName() + "-ark-biz", currentProject.getPackaging()));
         String artifactId = currentProject.getMavenId().getArtifactId();
 
 
-                RunManager runManager = RunManager.getInstance(e.getProject());
-                String name = String.format("Run %s", module);
-                RunnerAndConfigurationSettings cf = null;
-                if (runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).isEmpty()){
-                    cf = runManager.createConfiguration(name, new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
-                    cf.setName(name);
-                    ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
-                    configuration.setJarPath(path.toString());
-                    configuration.setModule(this.module);
-                    configuration.setArtifactId(artifactId);
-                    configuration.setPnUrl("http://localhost:8080/bridge");
+        RunManager runManager = RunManager.getInstance(e.getProject());
+        String name = String.format("Run %s", module);
+        String configId = String.format("%s-%s", artifactId, name);
+        RunnerAndConfigurationSettings cf = null;
+        if (runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).isEmpty()) {
+            cf = runManager.createConfiguration(name, new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
+            cf.setName(name);
+            ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
+            configuration.setJarPath(path.toString());
+            configuration.setModule(this.module);
+            configuration.setArtifactId(artifactId);
+            configuration.setPnUrl(DEFAULT_BRIDGE);
+            configuration.setMavenProject(currentProject);
+            configuration.setId(configId);
+            runManager.addConfiguration(cf);
+            runManager.setSelectedConfiguration(cf);
+        } else {
+            for (RunnerAndConfigurationSettings runnerAndConfigurationSettings : runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class)) {
+                ModuleRunConfiguration configuration = (ModuleRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
+                if (configuration.getId().equals(configId)) {
                     configuration.setMavenProject(currentProject);
-                    runManager.addConfiguration(cf);
-                    runManager.setSelectedConfiguration(cf);
-                }else {
-                    cf = runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).get(0);
-                    ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
-                    configuration.setMavenProject(currentProject);
+                    cf = runnerAndConfigurationSettings;
+                    break;
                 }
+            }
 
-                Executor executor = DefaultRunExecutor.getRunExecutorInstance();
+        }
 
-                if (debug) {
-                    executor = ExecutorRegistry.getInstance().getExecutorById(ToolWindowId.DEBUG);
-                }
-                ProgramRunnerUtil.executeConfiguration(cf, executor);
+        Executor executor = DefaultRunExecutor.getRunExecutorInstance();
+
+        if (debug) {
+            executor = ExecutorRegistry.getInstance().getExecutorById(ToolWindowId.DEBUG);
+        }
+        ProgramRunnerUtil.executeConfiguration(cf, executor);
 
     }
 
@@ -80,17 +89,17 @@ public class DeployAction extends AnAction {
         var currentProject = manager
                 .getProjects()
                 .stream()
-                .filter(mp-> currentFile.getPath().startsWith(mp.getDirectory()))
-                .sorted((a,b)->b.getDirectory().length()-a.getDirectory().length())
+                .filter(mp -> currentFile.getPath().startsWith(mp.getDirectory()))
+                .sorted((a, b) -> b.getDirectory().length() - a.getDirectory().length())
                 .findFirst().get();
 
         return currentProject;
     }
 
-    public static DeployAction createDeployAction(boolean debug,String module) {
+    public static DeployAction createDeployAction(boolean debug, String module) {
         if (debug) {
-            return new DeployAction(String.format("Debug %s",module),String.format("Build %s and Run it with Debug",module),AllIcons.Actions.StartDebugger,module,true);
+            return new DeployAction(String.format("Debug %s", module), String.format("Build %s and Run it with Debug", module), AllIcons.Actions.StartDebugger, module, true);
         }
-        return new DeployAction(String.format("Run %s",module),String.format("Build %s and Run it ",module),AllIcons.Actions.Execute,module,debug);
+        return new DeployAction(String.format("Run %s", module), String.format("Build %s and Run it ", module), AllIcons.Actions.Execute, module, debug);
     }
 }

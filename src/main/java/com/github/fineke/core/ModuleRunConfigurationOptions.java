@@ -9,7 +9,7 @@ public class ModuleRunConfigurationOptions extends RunConfigurationOptions {
     private final StoredProperty<String> artifactId = string("").provideDelegate(this, "artifactId");
     private final StoredProperty<String> module = string("").provideDelegate(this, "module");
     private final StoredProperty<String> pnUrl = string("").provideDelegate(this, "pnUrl");
-
+    private final StoredProperty<String> id = string("").provideDelegate(this, "id");
     public String getJarPath() {
         return jarPath.getValue(this);
     }
@@ -40,5 +40,13 @@ public class ModuleRunConfigurationOptions extends RunConfigurationOptions {
 
     public void setPnUrl(String pnUrl) {
         this.pnUrl.setValue(this, pnUrl);
+    }
+
+    public String getId() {
+        return id.getValue(this);
+    }
+
+    public void setId(String id) {
+        this.id.setValue(this, id);
     }
 }
