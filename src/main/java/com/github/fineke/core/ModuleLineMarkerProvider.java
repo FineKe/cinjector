@@ -105,7 +105,7 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
     public @Nullable Info getInfo(@NotNull PsiElement element) {
 
         if (isModule(element)) {
-            String module = getAnnotationValue(((PsiClass) element.getParent()).getAnnotation("com.oklink.blockchain.Module"));
+            String module = getAnnotationValue(((PsiClass) element.getParent()).getAnnotation("com.oklink.blockchain.parser.annotation.Module"));
             return new RunLineMarkerContributor.Info(AllIcons.Actions.Execute, new Function<PsiElement, String>() {
                 @Override
                 public String fun(PsiElement psiElement) {
@@ -124,7 +124,7 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
             PsiClass psiClass = (PsiClass) element.getParent();
 
             // 检查类是否有 @Module 注解
-            PsiAnnotation moduleAnnotation = psiClass.getAnnotation("com.oklink.blockchain.Module");
+            PsiAnnotation moduleAnnotation = psiClass.getAnnotation("com.oklink.blockchain.parser.annotation.Module");
             if (moduleAnnotation != null) {
                 return true;
 
@@ -134,7 +134,7 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
     }
 
     private String getAnnotationValue(PsiAnnotation annotation) {
-        PsiAnnotationMemberValue valueAttribute = annotation.findAttributeValue("value");
+        PsiAnnotationMemberValue valueAttribute = annotation.findAttributeValue("moduleType");
         if (valueAttribute instanceof PsiLiteralExpression) {
             Object value = ((PsiLiteralExpression) valueAttribute).getValue();
             return value != null ? value.toString() : "Unknown";
