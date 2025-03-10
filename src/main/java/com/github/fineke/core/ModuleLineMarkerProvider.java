@@ -1,42 +1,34 @@
 package com.github.fineke.core;
 
-import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
-import com.intellij.codeInsight.daemon.LineMarkerInfo;
-import com.intellij.codeInsight.daemon.LineMarkerProvider;
-import com.intellij.execution.lineMarker.ExecutorAction;
+import com.github.weisj.jsvg.S;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
-import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.psi.*;
-import com.intellij.ui.icons.RowIcon;
 import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
-import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static com.github.fineke.core.DeployAction.createDeployAction;
-import static com.intellij.util.PlatformIcons.ADD_ICON;
 
 public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
 
+
+    public static final String TARGET_ANNOTATION = "com.oklink.blockchain.parser.annotation.Module";
 
     private boolean isValidMainMethod(PsiMethod method) {
         PsiParameterList params = method.getParameterList();
@@ -104,15 +96,29 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
     @Override
     public @Nullable Info getInfo(@NotNull PsiElement element) {
 
+
         if (isModule(element)) {
-            String module = getAnnotationValue(((PsiClass) element.getParent()).getAnnotation("com.oklink.blockchain.parser.annotation.Module"));
+            var annotations = ((PsiClass) element.getParent()).getAnnotations();
+
+            List<DeployAction> list = new ArrayList<>();
+            for (PsiAnnotation annotation : annotations) {
+                if (TARGET_ANNOTATION.equals(annotation.getQualifiedName())){
+                    String module = getAnnotationValue(annotation);
+                    list.add(createDeployAction(false,module));
+                    list.add(createDeployAction(true,module));
+                }
+
+                System.out.println(annotation.getQualifiedName());
+            }
+
+
+//            String module = getAnnotationValue(((PsiClass) element.getParent()).getAnnotation(TARGET_ANNOTATION));
             return new RunLineMarkerContributor.Info(AllIcons.Actions.Execute, new Function<PsiElement, String>() {
                 @Override
                 public String fun(PsiElement psiElement) {
                     return "Compile and Run";
                 }
-            }, createDeployAction(false, module),
-                    createDeployAction(true, module));
+            }, list.toArray(new DeployAction[list.size()]));
         }
 
         return null;
@@ -124,10 +130,9 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
             PsiClass psiClass = (PsiClass) element.getParent();
 
             // 检查类是否有 @Module 注解
-            PsiAnnotation moduleAnnotation = psiClass.getAnnotation("com.oklink.blockchain.parser.annotation.Module");
+            PsiAnnotation moduleAnnotation = psiClass.getAnnotation(TARGET_ANNOTATION);
             if (moduleAnnotation != null) {
                 return true;
-
             }
         }
         return false;
