@@ -29,6 +29,7 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
 
 
     public static final String TARGET_ANNOTATION = "com.oklink.blockchain.parser.annotation.Module";
+    public static final String UNKNOWN = "Unknown";
 
     private boolean isValidMainMethod(PsiMethod method) {
         PsiParameterList params = method.getParameterList();
@@ -104,6 +105,9 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
             for (PsiAnnotation annotation : annotations) {
                 if (TARGET_ANNOTATION.equals(annotation.getQualifiedName())){
                     String module = getAnnotationValue(annotation);
+                    if (UNKNOWN.equals(module)){
+                        continue;
+                    }
                     list.add(createDeployAction(false,module));
                     list.add(createDeployAction(true,module));
                 }
@@ -142,8 +146,8 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
         PsiAnnotationMemberValue valueAttribute = annotation.findAttributeValue("moduleType");
         if (valueAttribute instanceof PsiLiteralExpression) {
             Object value = ((PsiLiteralExpression) valueAttribute).getValue();
-            return value != null ? value.toString() : "Unknown";
+            return value != null ? value.toString() : UNKNOWN;
         }
-        return "Unknown";
+        return UNKNOWN;
     }
 }

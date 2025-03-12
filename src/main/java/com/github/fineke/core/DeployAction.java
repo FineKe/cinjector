@@ -25,7 +25,7 @@ import java.util.List;
 
 public class DeployAction extends AnAction {
 
-    public static final String DEFAULT_BRIDGE = "http://localhost:8080/bridge";
+    public static final String DEFAULT_BRIDGE = "http://localhost:4555/bridge";
     private String module;
     private boolean debug;
 
@@ -47,32 +47,33 @@ public class DeployAction extends AnAction {
 
 
         RunManager runManager = RunManager.getInstance(e.getProject());
-        String name = String.format("Run %s", module);
+        String name = String.format("[%s]%s", artifactId,module);
         String configId = String.format("%s-%s", artifactId, name);
         RunnerAndConfigurationSettings cf = null;
         if (runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).isEmpty()) {
             cf = runManager.createConfiguration(name, new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
             cf.setName(name);
             ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
-            configuration.setJarPath(path.toString());
-            configuration.setModule(this.module);
-            configuration.setArtifactId(artifactId);
             configuration.setPnUrl(DEFAULT_BRIDGE);
-            configuration.setMavenProject(currentProject);
             configuration.setId(configId);
             runManager.addConfiguration(cf);
-            runManager.setSelectedConfiguration(cf);
         } else {
             for (RunnerAndConfigurationSettings runnerAndConfigurationSettings : runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class)) {
                 ModuleRunConfiguration configuration = (ModuleRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
                 if (configuration.getId().equals(configId)) {
-                    configuration.setMavenProject(currentProject);
                     cf = runnerAndConfigurationSettings;
                     break;
                 }
             }
 
         }
+
+        ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
+        configuration.setModule(this.module);
+        configuration.setArtifactId(artifactId);
+        configuration.setMavenProject(currentProject);
+        configuration.setJarPath(path.toString());
+        runManager.setSelectedConfiguration(cf);
 
         Executor executor = DefaultRunExecutor.getRunExecutorInstance();
 
