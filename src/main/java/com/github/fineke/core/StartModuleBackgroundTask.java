@@ -59,7 +59,7 @@ public class StartModuleBackgroundTask extends Task.Backgroundable {
         var configuration = (RemoteConfiguration) runnerAndConfigurationSettings.getConfiguration();
         // 设置 Remote Debug 参数
         configuration.HOST = "localhost";
-        configuration.PORT = String.valueOf(5005);
+        configuration.PORT = String.valueOf(4556);
         configuration.USE_SOCKET_TRANSPORT = true;
         configuration.SERVER_MODE = false;
         configuration.AUTO_RESTART = true;
