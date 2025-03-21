@@ -5,6 +5,8 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpTimeoutException;
+
 public class StopModuleBackgroundTask extends Task.Backgroundable {
     private static final String TITLE = "Start Module Background Task";
     private String baseURL;
@@ -29,6 +31,9 @@ public class StopModuleBackgroundTask extends Task.Backgroundable {
             ParserNodeBridge.uninstallJar(baseURL, artifactId);
             indicator.setText("Done!");
             MyNotification.showNotification(myProject, "Uninstall jar", "Jar uninstalled successfully!");
+        } catch (HttpTimeoutException exception) {
+            indicator.setText("Error!");
+            MyNotification.showNotification(myProject, "Stop Running Module Error", "stop module timeout, the module could not be stopped. please restart parser-node in docker and  optimize the module stop logic.");
         } catch (Exception e) {
             indicator.setText("Error!");
             MyNotification.showNotification(myProject, "Stop Running Module Error", e.getMessage());

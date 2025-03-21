@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.nio.file.Path;
 
 public class ParserNodeBridge {
@@ -54,6 +55,7 @@ public class ParserNodeBridge {
     public static void stopModule(String baserUrl, String artifactId, String module) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(String.format("%s/%s/%s/stop", baserUrl, artifactId, module)))
+                .timeout(java.time.Duration.ofSeconds(60))
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
         try {
@@ -62,14 +64,15 @@ public class ParserNodeBridge {
             if (apiResult.code != 0) {
                 throw new RuntimeException(String.format("stop module %s failed: %s", module, apiResult.getMsg()));
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (HttpTimeoutException e) {
+            throw e;
         }
     }
 
     public static void uninstallJar(String baserUrl, String artifactId) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(String.format("%s/%s/uninstall", baserUrl, artifactId)))
+                .timeout(java.time.Duration.ofSeconds(60))
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
         try {
@@ -78,8 +81,8 @@ public class ParserNodeBridge {
             if (apiResult.code != 0) {
                 throw new RuntimeException(String.format("uninstall jar %s failed: %s", artifactId, apiResult.getMsg()));
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (HttpTimeoutException e) {
+            throw e;
         }
     }
 
