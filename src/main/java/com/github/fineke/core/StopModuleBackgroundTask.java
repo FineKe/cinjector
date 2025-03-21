@@ -12,12 +12,14 @@ public class StopModuleBackgroundTask extends Task.Backgroundable {
     private String baseURL;
     private String artifactId;
     private String module;
+    private Runnable runnable;
 
-    public StopModuleBackgroundTask(Project project, String baseURL, String artifactId, String module) {
+    public StopModuleBackgroundTask(Project project, String baseURL, String artifactId, String module,Runnable runnable) {
         super(project, TITLE, true); // 参数说明：项目、进度条标题、是否可取消
         this.baseURL = baseURL;
         this.artifactId = artifactId;
         this.module = module;
+        this.runnable = runnable;
     }
 
     @Override
@@ -37,6 +39,10 @@ public class StopModuleBackgroundTask extends Task.Backgroundable {
         } catch (Exception e) {
             indicator.setText("Error!");
             MyNotification.showNotification(myProject, "Stop Running Module Error", e.getMessage());
+        }finally {
+            if (this.runnable!=null){
+                this.runnable.run();
+            }
         }
     }
 }
