@@ -48,24 +48,24 @@ public class DeployAction extends AnAction {
 
         RunManager runManager = RunManager.getInstance(e.getProject());
         String name = String.format("[%s]%s", artifactId,module);
-        String configId = String.format("%s-%s", artifactId, name);
+        String configId = String.format("%s-%s", artifactId, module);
         RunnerAndConfigurationSettings cf = null;
-        if (runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class).isEmpty()) {
+
+        for (RunnerAndConfigurationSettings runnerAndConfigurationSettings : runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class)) {
+            ModuleRunConfiguration configuration = (ModuleRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
+            if (configuration.getId().equals(configId)) {
+                cf = runnerAndConfigurationSettings;
+                break;
+            }
+        }
+
+        if (cf == null) {
             cf = runManager.createConfiguration(name, new RunModuleConfigurationFactory(new ModuleRunConfigurationType()));
             cf.setName(name);
             ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
             configuration.setPnUrl(DEFAULT_BRIDGE);
             configuration.setId(configId);
             runManager.addConfiguration(cf);
-        } else {
-            for (RunnerAndConfigurationSettings runnerAndConfigurationSettings : runManager.getConfigurationSettingsList(ModuleRunConfigurationType.class)) {
-                ModuleRunConfiguration configuration = (ModuleRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
-                if (configuration.getId().equals(configId)) {
-                    cf = runnerAndConfigurationSettings;
-                    break;
-                }
-            }
-
         }
 
         ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();

@@ -6,7 +6,6 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.externalSystem.util.environment.Environment;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -36,6 +35,11 @@ public class StartModuleBackgroundTask extends Task.Backgroundable {
         indicator.setIndeterminate(true); // 不确定进度模式（滚动条）
         indicator.setText("Install jar...");
         try {
+
+            if (environment!=null) {
+                startDebug(myProject, module,environment);
+            }
+
             // install jar包
             ParserNodeBridge.installJar(baseURL, Path.of(jarPath));
             MyNotification.showNotification(myProject, "Install jar", "Jar installed successfully!");
@@ -69,8 +73,5 @@ public class StartModuleBackgroundTask extends Task.Backgroundable {
     @Override
     public void onSuccess() {
         super.onSuccess();
-        if (environment!=null) {
-            startDebug(myProject, module,environment);
-        }
     }
 }

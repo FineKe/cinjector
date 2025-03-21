@@ -69,7 +69,8 @@ public class ModuleRunProfileState implements RunProfileState {
         }
 
         try {
-            runContentExecutor.withTitle(String.format("Running %s", module)).withActivateToolWindow(true)
+            runContentExecutor.withTitle(String.format("Running %s", config.getName()))
+                    .withActivateToolWindow(true)
                     .withFocusToolWindow(true)
                     .run();
         } catch (Exception e) {
