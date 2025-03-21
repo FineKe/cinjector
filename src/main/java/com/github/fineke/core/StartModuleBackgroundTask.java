@@ -20,14 +20,16 @@ public class StartModuleBackgroundTask extends Task.Backgroundable {
     private String artifactId;
     private String module;
     private ExecutionEnvironment environment;
+    private ModuleRunConfiguration configuration;
 
-    public StartModuleBackgroundTask(Project project, ExecutionEnvironment environment, String baseURL, String jarPath, String artifactId, String module) {
+    public StartModuleBackgroundTask(Project project, ExecutionEnvironment environment,ModuleRunConfiguration configuration) {
         super(project, TITLE, true); // 参数说明：项目、进度条标题、是否可取消
-        this.baseURL = baseURL;
-        this.jarPath = jarPath;
-        this.artifactId = artifactId;
-        this.module = module;
+        this.baseURL = configuration.getPnUrl();
+        this.jarPath = configuration.getJarPath();
+        this.artifactId = configuration.getArtifactId();
+        this.module = configuration.getModule();
         this.environment = environment;
+        this.configuration = configuration;
     }
 
     @Override
@@ -56,8 +58,8 @@ public class StartModuleBackgroundTask extends Task.Backgroundable {
 
 
     private void startDebug(Project project, String module,@NotNull ExecutionEnvironment environment) {
+        String name = String.format("Debug %s", configuration.getName());
         RunManager runManager = RunManager.getInstance(project);
-        String name = String.format("Debug %s", module);
         RunnerAndConfigurationSettings runnerAndConfigurationSettings = runManager.createConfiguration(name, RemoteConfigurationType.getInstance());
         runnerAndConfigurationSettings.setName(name);
         var configuration = (RemoteConfiguration) runnerAndConfigurationSettings.getConfiguration();
