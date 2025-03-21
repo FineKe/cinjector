@@ -10,14 +10,13 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.project.MavenProject;
 
 public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfigurationOptions> {
-  private MavenProject mavenProject;
   protected ModuleRunConfiguration(Project project,
                                    ConfigurationFactory factory,
                                    String name) {
     super(project, factory, name);
+
   }
 
   @Override
@@ -76,13 +75,5 @@ public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfig
   public RunProfileState getState(@NotNull Executor executor,
                                   @NotNull ExecutionEnvironment environment) {
     return new ModuleRunProfileState(this,environment);
-  }
-
-  public MavenProject getMavenProject() {
-    return mavenProject;
-  }
-
-  public void setMavenProject(MavenProject mavenProject) {
-    this.mavenProject = mavenProject;
   }
 }

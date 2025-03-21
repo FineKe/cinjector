@@ -71,7 +71,6 @@ public class DeployAction extends AnAction {
         ModuleRunConfiguration configuration = (ModuleRunConfiguration) cf.getConfiguration();
         configuration.setModule(this.module);
         configuration.setArtifactId(artifactId);
-        configuration.setMavenProject(currentProject);
         configuration.setJarPath(path.toString());
         runManager.setSelectedConfiguration(cf);
 

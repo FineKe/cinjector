@@ -20,7 +20,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <configurationType implementation="com.github.fineke.core.ModuleRunConfigurationType"/>
         <runLineMarkerContributor language="JAVA" implementationClass="com.github.fineke.core.ModuleLineMarkerProvider"/>
-                <programRunner implementation="com.github.fineke.core.DeployRunner"/>
+        <programRunner implementation="com.github.fineke.core.DeployRunner"/>
     </extensions>
     <actions>
         <action id="DeployAction" class="com.github.fineke.core.DeployAction" text="DeployAction"/>

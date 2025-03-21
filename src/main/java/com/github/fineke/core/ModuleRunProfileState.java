@@ -13,19 +13,24 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindowId;
 import kotlinx.serialization.json.Json;
+import net.schmizz.sshj.transport.digest.MD5;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.io.JsonUtil;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -34,6 +39,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.Collections;
+
+import static com.github.fineke.core.MyKeys.LAST_MODIFY_TIME_KEY;
 
 public class ModuleRunProfileState implements RunProfileState {
     private final ModuleRunConfiguration config;
@@ -45,7 +52,12 @@ public class ModuleRunProfileState implements RunProfileState {
         this.config = config;
         this.environment = environment;
         this.project = environment.getProject();
-        this.mavenProject = config.getMavenProject();
+        this.mavenProject = MavenProjectsManager
+                .getInstance(project)
+                .getProjects()
+                .stream()
+                .filter( mavenProject1 -> mavenProject1.getMavenId().getArtifactId().equals(config.getArtifactId()))
+                .findFirst().get();
     }
 
     @Override
@@ -106,15 +118,18 @@ public class ModuleRunProfileState implements RunProfileState {
     }
 
     private void compileJar(Runnable runnable) {
-        MavenRunner runner = MavenRunner.getInstance(project);
-        MavenRunnerSettings settings = runner.getState().clone();
-        settings.getMavenProperties().put("interactiveMode", "false");
-        MavenRunnerParameters params = new MavenRunnerParameters();
-        params.setWorkingDirPath(mavenProject.getDirectory());
-        params.setGoals(Collections.singletonList("package"));
-        params.setCmdOptions("-Dmaven.test.skip=true");
-        runner.run(params, settings, runnable);
-
+        if (needCompile()) {
+            MavenRunner runner = MavenRunner.getInstance(project);
+            MavenRunnerSettings settings = runner.getState().clone();
+            settings.getMavenProperties().put("interactiveMode", "false");
+            MavenRunnerParameters params = new MavenRunnerParameters();
+            params.setWorkingDirPath(mavenProject.getDirectory());
+            params.setGoals(Collections.singletonList("package"));
+            params.setCmdOptions("-Dmaven.test.skip=true");
+            runner.run(params, settings, runnable);
+        }else {
+            ApplicationManager.getApplication().invokeLater(runnable, ModalityState.NON_MODAL);
+        }
     }
 
     private ConsoleView createConsoleView() {
@@ -140,5 +155,31 @@ public class ModuleRunProfileState implements RunProfileState {
         public void setMsg(String msg) {
             this.msg = msg;
         }
+    }
+
+
+    /*private boolean needCompile() {
+        Long lastModifyTime = (Long) this.mavenProject.getCachedValue(LAST_MODIFY_TIME_KEY) == null ? 0 : (Long) this.mavenProject.getCachedValue(LAST_MODIFY_TIME_KEY);
+        // check if the file is changed
+        Long latestModifyTime =this.mavenProject.getDirectoryFile().getTimeStamp();
+        if (latestModifyTime > lastModifyTime) {
+            mavenProject.putCachedValue(LAST_MODIFY_TIME_KEY, latestModifyTime);
+            return true;
+        }
+        mavenProject.putCachedValue(LAST_MODIFY_TIME_KEY, latestModifyTime);
+        return false;
+    }*/
+
+    private boolean needCompile() {
+
+        String lastDigest = (String) this.mavenProject.getCachedValue(LAST_MODIFY_TIME_KEY);
+        // check if the file is changed
+        String latestDigest = FolderMD5Calculator.calculateFolderMD5(new File(this.mavenProject.getDirectory()));
+        if (lastDigest == null || !latestDigest.equals(lastDigest)) {
+            mavenProject.resetCache();
+            mavenProject.putCachedValue(LAST_MODIFY_TIME_KEY, latestDigest);
+            return true;
+        }
+        return false;
     }
 }
