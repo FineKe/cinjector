@@ -64,6 +64,14 @@ public class ModuleRunConfiguration extends RunConfigurationBase<ModuleRunConfig
         return getOptions().getId();
     }
 
+    public void setMd5(String md5) {
+        getOptions().setMd5(md5);
+    }
+
+    public String getMd5() {
+        return getOptions().getMd5();
+    }
+
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {

@@ -44,15 +44,15 @@ public class StartModuleBackgroundTask extends Task.Backgroundable {
 
             // install jar包
             ParserNodeBridge.installJar(baseURL, Path.of(jarPath));
-            MyNotification.showNotification(myProject, "Install jar", "Jar installed successfully!");
+            MyNotification.showNotificationOk(myProject, "Install jar", "Jar installed successfully!");
             indicator.setText("Start module...");
             // 启动 module
             ParserNodeBridge.startModule(baseURL, artifactId, module);
             indicator.setText("Done!");
-            MyNotification.showNotification(myProject, "Start module", "Module started successfully!");
+            MyNotification.showNotificationOk(myProject, "Start module", "Module started successfully!");
         } catch (Exception e) {
             indicator.setText("Error!");
-            MyNotification.showNotification(myProject, "Run module Error", e.getMessage());
+            MyNotification.showNotificationErr(myProject, "Run module Error", e.getMessage());
         }
     }
 

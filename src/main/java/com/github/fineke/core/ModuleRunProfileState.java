@@ -94,7 +94,7 @@ public class ModuleRunProfileState implements RunProfileState {
             params.setCmdOptions("-Dmaven.test.skip=true");
             runner.run(params, settings, runnable);
         } else {
-            ApplicationManager.getApplication().invokeLater(runnable, ModalityState.NON_MODAL);
+            ApplicationManager.getApplication().invokeLater(runnable, ModalityState.nonModal());
         }
     }
 
@@ -125,12 +125,11 @@ public class ModuleRunProfileState implements RunProfileState {
 
     private boolean needCompile() {
 
-        String lastDigest = (String) this.mavenProject.getCachedValue(LAST_MODIFY_TIME_KEY);
+        String lastDigest = (String) this.config.getMd5();
         // check if the file is changed
         String latestDigest = FolderMD5Calculator.calculateFolderMD5(new File(this.mavenProject.getDirectory()));
         if (lastDigest == null || !latestDigest.equals(lastDigest)) {
-            mavenProject.resetCache();
-            mavenProject.putCachedValue(LAST_MODIFY_TIME_KEY, latestDigest);
+            this.config.setMd5(latestDigest);
             return true;
         }
         return false;

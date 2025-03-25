@@ -3,5 +3,9 @@
 # cinjector Changelog
 
 ## [Unreleased]
+
+## [0.1.0] - 2025-03-23
 ### Added
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
+- recognize @Module annotation to provide RUN/DEBUG LineMarker
+- support module RunConfiguration to run/debu module
+- auto install ark.jar, start module, stop module, uninstall ark.jar

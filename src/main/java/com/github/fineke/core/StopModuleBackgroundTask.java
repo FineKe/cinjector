@@ -29,16 +29,16 @@ public class StopModuleBackgroundTask extends Task.Backgroundable {
         try {
             // stop module
             ParserNodeBridge.stopModule(baseURL, artifactId, module);
-            MyNotification.showNotification(myProject, "Stop module", "Module stopped successfully!");
+            MyNotification.showNotificationOk(myProject, "Stop module", "Module stopped successfully!");
             ParserNodeBridge.uninstallJar(baseURL, artifactId);
             indicator.setText("Done!");
-            MyNotification.showNotification(myProject, "Uninstall jar", "Jar uninstalled successfully!");
+            MyNotification.showNotificationOk(myProject, "Uninstall jar", "Jar uninstalled successfully!");
         } catch (HttpTimeoutException exception) {
             indicator.setText("Error!");
-            MyNotification.showNotification(myProject, "Stop Running Module Error", "stop module timeout, the module could not be stopped. please restart parser-node in docker and  optimize the module stop logic.");
+            MyNotification.showNotificationErr(myProject, "Stop Running Module Error", "stop module timeout, the module could not be stopped. please restart parser-node in docker and  optimize the module stop logic.");
         } catch (Exception e) {
             indicator.setText("Error!");
-            MyNotification.showNotification(myProject, "Stop Running Module Error", e.getMessage());
+            MyNotification.showNotificationErr(myProject, "Stop Running Module Error", e.getMessage());
         }finally {
             if (this.runnable!=null){
                 this.runnable.run();

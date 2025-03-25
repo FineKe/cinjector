@@ -1,5 +1,6 @@
 package com.github.fineke.core;
 
+import com.github.weisj.jsvg.S;
 import com.intellij.execution.configurations.RunConfigurationOptions;
 import com.intellij.openapi.components.StoredProperty;
 
@@ -10,6 +11,7 @@ public class ModuleRunConfigurationOptions extends RunConfigurationOptions {
     private final StoredProperty<String> module = string("").provideDelegate(this, "module");
     private final StoredProperty<String> pnUrl = string("").provideDelegate(this, "pnUrl");
     private final StoredProperty<String> id = string("").provideDelegate(this, "id");
+    private final StoredProperty<String> md5 = string("").provideDelegate(this, "md5");
     public String getJarPath() {
         return jarPath.getValue(this);
     }
@@ -48,5 +50,13 @@ public class ModuleRunConfigurationOptions extends RunConfigurationOptions {
 
     public void setId(String id) {
         this.id.setValue(this, id);
+    }
+
+    public String getMd5() {
+        return md5.getValue(this);
+    }
+
+    public void setMd5(String md5) {
+        this.md5.setValue(this, md5);
     }
 }

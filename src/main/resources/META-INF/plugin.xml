@@ -3,8 +3,9 @@
     <id>com.github.fineke.cinjector</id>
     <name>cinjector</name>
     <vendor>fineke</vendor>
-
-    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+<!--    com.intellij.modules.java-->
+<!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>org.jetbrains.idea.maven</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
