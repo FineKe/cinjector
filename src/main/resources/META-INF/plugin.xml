@@ -14,6 +14,12 @@
         <toolWindow factoryClass="com.github.fineke.cinjector.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="CInjector Notification Group"
+                           displayType="BALLOON"
+                           key="com.github.fineke.core.cinjector"/>
+    </extensions>
+
     <applicationListeners>
         <listener class="com.github.fineke.cinjector.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>

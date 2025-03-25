@@ -4,7 +4,7 @@ import com.intellij.notification.*;
 import com.intellij.openapi.project.Project;
 
 public class MyNotification {
-    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("CInjector Notifications");
+    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("CInjector Notification Group");
     public static void showNotification(Project project, String title,String content,boolean ok) {
         Notification notification = NOTIFICATION_GROUP.createNotification(
                 title,  // 标题
