@@ -39,14 +39,14 @@ public class ModuleLineMarkerProvider extends RunLineMarkerContributor {
                 System.out.println(annotation.getQualifiedName());
             }
 
+            return new Info(AllIcons.Actions.Execute,list.toArray(new DeployAction[0]), (Function<PsiElement, String>) psiElement -> "Compile and Run");
 
-//            String module = getAnnotationValue(((PsiClass) element.getParent()).getAnnotation(TARGET_ANNOTATION));
-            return new RunLineMarkerContributor.Info(AllIcons.Actions.Execute, new Function<PsiElement, String>() {
-                @Override
-                public String fun(PsiElement psiElement) {
-                    return "Compile and Run";
-                }
-            }, list.toArray(new DeployAction[list.size()]));
+//            return new RunLineMarkerContributor.Info(AllIcons.Actions.Execute, new Function<PsiElement, String>() {
+//                @Override
+//                public String fun(PsiElement psiElement) {
+//                    return "Compile and Run";
+//                }
+//            }, list.toArray(new DeployAction[list.size()]));
         }
 
         return null;
